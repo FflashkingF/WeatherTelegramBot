@@ -19,7 +19,10 @@ dp = Dispatcher(bot, storage=storage)
 
 
 @dp.message_handler(state='*', commands=['stop'])
-async def send_welcome(message: types.Message):
+async def send_welcome(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is not None:
+        await state.finish()
     await message.reply('Goodbye', reply_markup=keyboards_.ReplyKeyboardRemove())
 
 
@@ -29,7 +32,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is not None:
         await state.finish()
-    await message.reply('Cancelled.', reply_markup=keyboards_.start_kb)
+    await message.reply('Cancelled', reply_markup=keyboards_.start_kb)
 
 
 class Input_location(StatesGroup):
@@ -103,7 +106,7 @@ async def help_handler(message: types.Message):
         '/Write_location to ask weather in location which you want\n' + \
         f'Press button "{json.loads(keyboards_.button_location.as_json())["text"]}" to see weather ' +  \
         'in your own location(you also can drop custom location)\n' + \
-        '/cancel to return in /start' + \
+        '/cancel to return in /start\n' + \
         '/stop to stop bot'
     await message.reply(message_text, reply_markup=keyboards_.start_kb)
 

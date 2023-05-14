@@ -128,7 +128,7 @@ async def input_location_handler(message: types.Message) -> None:
             os.remove(full_path)
 
     else:
-        await message.answer(texts_.sorry_by_cats,  reply_markup=keyboards_.start_kb)
+        await message.answer(texts_.sorry_by_cat,  reply_markup=keyboards_.start_kb)
 
 
 @dp.message_handler()  # anything or help, start

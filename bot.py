@@ -45,7 +45,7 @@ async def input_location_handler(message: types.Message):
     await message.answer("Please write location.")
 
 
-def get_url_by_location(location: str) -> str:
+def get_url_by_location(location: str) -> str: #domen to constant
     return f'https://api.openweathermap.org/data/2.5/weather?q={location}&appid={config_.WEATHER_API}&units=metric'
 
 
@@ -57,7 +57,7 @@ async def try_answer(message: types.Message, url: str, location: str, state: FSM
     response = requests.get(url)
 
     print(response.status_code)
-    if response.status_code == 200:
+    if response.status_code == 200: #
         # print(response)
         weather_data = response.json()
         # print(weather_data)

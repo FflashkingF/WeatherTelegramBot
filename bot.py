@@ -6,6 +6,7 @@ import url_names_
 import texts_
 import status_codes_
 import json
+import uuid
 import pathlib
 import os
 from pprint import pprint
@@ -115,7 +116,8 @@ async def input_location_handler(message: types.Message) -> None:
         cat_name: str = cat_url.split('/')[-1]
         rash: str = cat_name.split('.')[-1]
         print(cat_url, cat_name)
-        full_path = pathlib.Path(__file__).parent.resolve()/('cat.' + rash)
+        unique_filename = str(uuid.uuid4())
+        full_path = pathlib.Path(__file__).parent.resolve()/(unique_filename + cat_name)
         print(full_path)
         with open(full_path, "wb") as cat:
             cat.write(cat_response.content)
@@ -128,7 +130,7 @@ async def input_location_handler(message: types.Message) -> None:
             os.remove(full_path)
 
     else:
-        await message.answer(texts_.sorry_by_cat,  reply_markup=keyboards_.start_kb)
+        await message.answer(texts_.sorry_by_cats,  reply_markup=keyboards_.start_kb)
 
 
 @dp.message_handler()  # anything or help, start

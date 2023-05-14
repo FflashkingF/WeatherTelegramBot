@@ -107,25 +107,24 @@ async def input_location_handler(message: types.Message) -> None:
     url = "https://api.thecatapi.com/v1/images/search"
     response = requests.get(url)
     print(response.status_code)
-    if response.status_code == 200: #
+    if response.status_code == 200: 
         cat_data = response.json()
-        # print(weather_data)
         cat_url : str = cat_data[0]['url']
         cat_response = requests.get(cat_url)
         cat_name : str = cat_url.split('/')[-1]
+        rash : str = cat_name.split('.')[-1]
         print(cat_url, cat_name)
-        full_path = pathlib.Path(__file__).parent.resolve()/'cat.jpg'
-
+        full_path = pathlib.Path(__file__).parent.resolve()/('cat.' + rash)
+        print(full_path)
         with open(full_path, "wb") as cat:
             cat.write(cat_response.content)
         cat = open(full_path, "rb")
-        await bot.send_photo(message.chat.id, photo=cat)
+        if rash == 'gif':
+            await bot.send_animation(message.chat.id, animation=cat)
+        else:
+            await bot.send_photo(message.chat.id, photo=cat)
         cat.close()
         os.remove(full_path)
-        #url = "https://example.com/image.jpg"
-        #response = requests.get(url)
-        #with open("image.jpg", "wb") as f:
-            #f.write(response.content)
 
     else:
         message_text = "Sorry, i can't find a cat."

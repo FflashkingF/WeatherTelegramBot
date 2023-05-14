@@ -2,6 +2,9 @@ import logging
 import requests
 import config_
 import keyboards_
+import url_names_
+import texts_
+import status_codes_
 import json
 import pathlib
 import os
@@ -47,19 +50,19 @@ async def input_location_handler(message: types.Message):
     await message.answer("Please write location.")
 
 
-def get_url_by_location(location: str) -> str: #domen to constant
-    return f'https://api.openweathermap.org/data/2.5/weather?q={location}&appid={config_.WEATHER_API}&units=metric'
+def get_url_by_location(location: str) -> str:  # domen to constant
+    return url_names_.WEATHER_BY_NAME.format(location_name=location, weather_api=config_.WEATHER_API)
 
 
 def get_url_by_lat_lon(lat: float, lon: float):
-    return f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={config_.WEATHER_API}&units=metric'
+    return url_names_.WEATHER_BY_LAT_LON.format(lat=lat, lon=lon, weather_api=config_.WEATHER_API)
 
 
 async def try_answer(message: types.Message, url: str, location: str, state: FSMContext) -> None:
     response = requests.get(url)
 
     print(response.status_code)
-    if response.status_code == 200: #
+    if response.status_code == status_codes_.RESPONSE_GOOD:
         # print(response)
         weather_data = response.json()
         # print(weather_data)
@@ -76,8 +79,7 @@ async def try_answer(message: types.Message, url: str, location: str, state: FSM
             f'Wind speed is {wind_speed:0.1f}m/s'
         await state.finish()
     else:
-        message_text = f"Sorry, I couldn't find weather information for {location}.\n" + \
-            "Please try again."
+        message_text = texts_.wrong_location.format(location=location)
     await message.answer(message_text,  reply_markup=keyboards_.start_kb)
 
 
@@ -104,42 +106,34 @@ async def process_input_location(message: types.Message, state: FSMContext):
 
 @dp.message_handler(commands=['cats'])
 async def input_location_handler(message: types.Message) -> None:
-    url = "https://api.thecatapi.com/v1/images/search"
-    response = requests.get(url)
+    response = requests.get(url_names_.CATS)
     print(response.status_code)
-    if response.status_code == 200: 
+    if response.status_code == status_codes_.RESPONSE_GOOD:
         cat_data = response.json()
-        cat_url : str = cat_data[0]['url']
+        cat_url: str = cat_data[0]['url']
         cat_response = requests.get(cat_url)
-        cat_name : str = cat_url.split('/')[-1]
-        rash : str = cat_name.split('.')[-1]
+        cat_name: str = cat_url.split('/')[-1]
+        rash: str = cat_name.split('.')[-1]
         print(cat_url, cat_name)
         full_path = pathlib.Path(__file__).parent.resolve()/('cat.' + rash)
         print(full_path)
         with open(full_path, "wb") as cat:
             cat.write(cat_response.content)
-        cat = open(full_path, "rb")
-        if rash == 'gif':
-            await bot.send_animation(message.chat.id, animation=cat)
-        else:
-            await bot.send_photo(message.chat.id, photo=cat)
-        cat.close()
-        os.remove(full_path)
+
+        with open(full_path, "rb") as cat:
+            if rash == 'gif':
+                await bot.send_animation(message.chat.id, animation=cat)
+            else:
+                await bot.send_photo(message.chat.id, photo=cat)
+            os.remove(full_path)
 
     else:
-        message_text = "Sorry, i can't find a cat."
-        await message.answer(message_text,  reply_markup=keyboards_.start_kb)
+        await message.answer(texts_.sorry_by_cats,  reply_markup=keyboards_.start_kb)
+
 
 @dp.message_handler()  # anything or help, start
 async def help_handler(message: types.Message):
-    message_text = 'Instruction\n' + \
-        '/cats to get picture with cat\n' + \
-        '/Write_location to ask weather in location which you want\n' + \
-        f'Press button "{json.loads(keyboards_.button_location.as_json())["text"]}" to see weather ' +  \
-        'in your own location(you also can drop custom location)\n' + \
-        '/cancel to return in /start\n' + \
-        '/stop to stop bot'
-    await message.reply(message_text, reply_markup=keyboards_.start_kb)
+    await message.reply(texts_.main, reply_markup=keyboards_.start_kb)
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)

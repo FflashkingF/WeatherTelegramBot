@@ -3,6 +3,8 @@ import requests
 import config_
 import keyboards_
 import json
+import pathlib
+import os
 from pprint import pprint
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -100,9 +102,39 @@ async def process_input_location(message: types.Message, state: FSMContext):
     await try_answer(message, url, location, state)
 
 
+@dp.message_handler(commands=['cats'])
+async def input_location_handler(message: types.Message) -> None:
+    url = "https://api.thecatapi.com/v1/images/search"
+    response = requests.get(url)
+    print(response.status_code)
+    if response.status_code == 200: #
+        cat_data = response.json()
+        # print(weather_data)
+        cat_url : str = cat_data[0]['url']
+        cat_response = requests.get(cat_url)
+        cat_name : str = cat_url.split('/')[-1]
+        print(cat_url, cat_name)
+        full_path = pathlib.Path(__file__).parent.resolve()/'cat.jpg'
+
+        with open(full_path, "wb") as cat:
+            cat.write(cat_response.content)
+        cat = open(full_path, "rb")
+        await bot.send_photo(message.chat.id, photo=cat)
+        cat.close()
+        os.remove(full_path)
+        #url = "https://example.com/image.jpg"
+        #response = requests.get(url)
+        #with open("image.jpg", "wb") as f:
+            #f.write(response.content)
+
+    else:
+        message_text = "Sorry, i can't find a cat."
+        await message.answer(message_text,  reply_markup=keyboards_.start_kb)
+
 @dp.message_handler()  # anything or help, start
 async def help_handler(message: types.Message):
     message_text = 'Instruction\n' + \
+        '/cats to get picture with cat\n' + \
         '/Write_location to ask weather in location which you want\n' + \
         f'Press button "{json.loads(keyboards_.button_location.as_json())["text"]}" to see weather ' +  \
         'in your own location(you also can drop custom location)\n' + \

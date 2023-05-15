@@ -117,7 +117,12 @@ async def input_location_handler(message: types.Message) -> None:
         rash: str = cat_name.split('.')[-1]
         print(cat_url, cat_name)
         unique_filename = str(uuid.uuid4())
-        full_path = pathlib.Path(__file__).parent.resolve()/(unique_filename + cat_name)
+        main_path = pathlib.Path(__file__).parent.resolve()
+        try:
+            os.mkdir(main_path/"cats")
+        except:
+            pass
+        full_path = main_path/"cats"/(unique_filename + cat_name)
         print(full_path)
         with open(full_path, "wb") as cat:
             cat.write(cat_response.content)

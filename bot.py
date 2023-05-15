@@ -118,10 +118,10 @@ async def input_location_handler(message: types.Message) -> None:
         print(cat_url, cat_name)
         unique_filename = str(uuid.uuid4())
         main_path = pathlib.Path(__file__).parent.resolve()
-        try:
+        cats_path = main_path/"cats"
+        if not cats_path.exists():
             os.mkdir(main_path/"cats")
-        except:
-            pass
+
         full_path = main_path/"cats"/(unique_filename + cat_name)
         print(full_path)
         with open(full_path, "wb") as cat:

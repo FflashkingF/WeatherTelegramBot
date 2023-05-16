@@ -112,27 +112,13 @@ async def input_location_handler(message: types.Message) -> None:
     if response.status_code == status_codes_.RESPONSE_GOOD:
         cat_data = response.json()
         cat_url: str = cat_data[0]['url']
-        cat_response = requests.get(cat_url)
         cat_name: str = cat_url.split('/')[-1]
         rash: str = cat_name.split('.')[-1]
         print(cat_url, cat_name)
-        unique_filename = str(uuid.uuid4())
-        main_path = pathlib.Path(__file__).parent.resolve()
-        cats_path = main_path/"cats"
-        if not cats_path.exists():
-            os.mkdir(main_path/"cats")
-
-        full_path = main_path/"cats"/(unique_filename + cat_name)
-        print(full_path)
-        with open(full_path, "wb") as cat:
-            cat.write(cat_response.content)
-
-        with open(full_path, "rb") as cat:
-            if rash == 'gif':
-                await bot.send_animation(message.chat.id, animation=cat)
-            else:
-                await bot.send_photo(message.chat.id, photo=cat)
-            os.remove(full_path)
+        if rash == 'gif':
+            await bot.send_animation(message.chat.id, animation=cat_url)
+        else:
+            await bot.send_photo(message.chat.id, photo=cat_url)
 
     else:
         await message.answer(texts_.sorry_by_cats,  reply_markup=keyboards_.start_kb)
